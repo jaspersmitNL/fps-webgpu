@@ -7,6 +7,7 @@ import Scene from "./engine/core/scene";
 import Renderer from "./engine/render/renderer";
 import { parseOBJ } from "./engine_old/parser/obj";
 import monkey from "./monkey.obj?raw";
+import plane from "./plane.obj?raw";
 import './style.css'
 async function main() {
 
@@ -39,35 +40,43 @@ async function main() {
         [0, 1, 2]
     );
 
-    const monkeyOBJ = parseOBJ(monkey);
-
-    let monkeyVerts = monkeyOBJ.vertices.flat();
-    let monkeyIndices = monkeyOBJ.faces.flatMap((face) => face.vertexIndices);
-
-
-
-
 
 
 
     {
-        let testEntity = scene.addEntity("test");
-        testEntity.addComponent(new MeshComponent(triangle));
-        testEntity.addComponent(new MaterialComponent('basic_mesh'));
+        let triangleEntity = scene.addEntity("triangle");
+        triangleEntity.addComponent(new MeshComponent(triangle));
+        triangleEntity.addComponent(new MaterialComponent('basic_mesh'));
 
-        testEntity.getComponent(TransformComponent)!
+        triangleEntity.getComponent(TransformComponent)!
             .setScaleScalar(0.5)
-            .setPosition(-0.5, 0, 0);
+            .setPosition(-0.5, 0.5, 0);
     }
 
     {
-        let testEntity2 = scene.addEntity("test2");
-        testEntity2.addComponent(new MeshComponent(Mesh.create(context, monkeyVerts, monkeyIndices)));
-        testEntity2.addComponent(new MaterialComponent('basic_mesh'));
+        const monkeyOBJ = parseOBJ(monkey);
 
-        testEntity2.getComponent(TransformComponent)!
+
+        let monkeyEntity = scene.addEntity("monkey");
+        monkeyEntity.addComponent(new MeshComponent(Mesh.create(context, monkeyOBJ.vertices.flat(), monkeyOBJ.faces.flatMap((face) => face.vertexIndices))));
+        monkeyEntity.addComponent(new MaterialComponent('basic_mesh'));
+
+        monkeyEntity.getComponent(TransformComponent)!
             .setScaleScalar(0.5)
-            .setPosition(0.5, 0, 0);
+            .setPosition(0.5, 0.8, 0);
+    }
+
+    {
+        const planeOBJ = parseOBJ(plane);
+
+
+        let planeEntity = scene.addEntity("plane");
+        planeEntity.addComponent(new MeshComponent(Mesh.create(context, planeOBJ.vertices.flat(), planeOBJ.faces.flatMap((face) => face.vertexIndices))));
+        planeEntity.addComponent(new MaterialComponent('basic_mesh'));
+
+        planeEntity.getComponent(TransformComponent)!
+            .setScaleScalar(2w)
+            .setPosition(0, 0, 0);
     }
 
     let lastTime = 0;
