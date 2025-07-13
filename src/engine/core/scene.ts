@@ -1,13 +1,16 @@
 import Renderer from "../render/renderer";
+import type { Camera } from "./camera";
 import { ECS, IDComponent, MeshComponent, TagComponent, TransformComponent, MaterialComponent } from "./ecs";
 import Entity from "./entity";
 
 export default class Scene {
 
     public _ecs: ECS;
+    public camera: Camera;
 
-    constructor() {
+    constructor(camera: Camera) {
         this._ecs = new ECS();
+        this.camera = camera;
     }
 
 
@@ -27,6 +30,8 @@ export default class Scene {
 
     update(renderer: Renderer, deltaTime: number): void {
 
+        this.camera.update(deltaTime);
+
 
         renderer.clear([0, 0, 0, 1]);
 
@@ -37,7 +42,7 @@ export default class Scene {
 
 
         this.getEntity(0)!.getComponent(TransformComponent)!.rotation[2] += 0.01;
-        this.getEntity(1)!.getComponent(TransformComponent)!.rotation[2] -= 0.01;
+        this.getEntity(1)!.getComponent(TransformComponent)!.rotation[1] -= 0.01;
 
 
 

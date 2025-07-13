@@ -24,6 +24,10 @@ export default class Renderer {
 
     setup() {
 
+        if (this.depthTexture) {
+            this.depthTexture.destroy();
+        }
+
         this.depthTexture = this.context.device.createTexture({
             size: [this.context.canvas.width, this.context.canvas.height],
             format: 'depth24plus',
@@ -139,6 +143,7 @@ export default class Renderer {
         this.renderPass.drawIndexed(mesh.mesh.vertexCount);
 
         this.renderPass.end();
+
         this.context.device.queue.submit([this.commandEncoder.finish()]);
     }
 

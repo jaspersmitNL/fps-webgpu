@@ -38,8 +38,13 @@ class Pipeline {
     }
 
     private uploadBassicMeshUniforms(context: Context, scene: Scene, transform: TransformComponent) {
-        let projection = mat4.identity();
-        let view = mat4.identity();
+        let projection = mat4.perspective(
+            Math.PI / 4, // 45 degrees
+            context.canvas.width / context.canvas.height,
+            0.1, // near plane
+            1000 // far plane
+        );
+        let view = scene.camera.getViewMatrix();
         let model = mat4.identity();
         model = mat4.translate(model, transform.position);
         model = mat4.rotateX(model, transform.rotation[0]);
