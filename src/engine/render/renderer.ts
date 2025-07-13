@@ -6,6 +6,7 @@ import PipelineManager, { PipelineType } from "./pipeline-manager";
 
 export default class Renderer {
 
+
     private context: Context;
     private commandEncoder?: GPUCommandEncoder;
     private textureView?: GPUTextureView;
@@ -30,25 +31,24 @@ export default class Renderer {
         });
 
         this.depthTextureView = this.depthTexture!.createView();
-
-
-
-
-
     }
 
-    beginScene(scene: Scene) {
+
+
+    clear(clearColor: number[]) {
         this.commandEncoder = this.context.device.createCommandEncoder();
         this.textureView = this.context.context.getCurrentTexture().createView();
 
-
+        if (!this.commandEncoder || !this.textureView) {
+            throw new Error("Render pass or command encoder not initialized");
+        }
 
         const renderPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [{
                 view: this.textureView,
                 loadOp: 'clear',
                 storeOp: 'store',
-                clearValue: { r: 0, g: 0, b: 0, a: 1 },
+                clearValue: { r: clearColor[0], g: clearColor[1], b: clearColor[2], a: clearColor[3] },
             }],
             depthStencilAttachment: {
                 view: this.depthTextureView!,
@@ -56,18 +56,53 @@ export default class Renderer {
                 depthStoreOp: 'store',
                 depthClearValue: 1.0,
             },
-
         };
 
         this.renderPass = this.commandEncoder.beginRenderPass(renderPassDescriptor);
+        if (!this.renderPass) {
+            throw new Error("Render pass not initialized");
+        }
+        this.renderPass!.end();
+        this.context.device.queue.submit([this.commandEncoder.finish()]);
+
+
 
     }
 
 
+
+
     renderMesh(transform: TransformComponent, mesh: MeshComponent, material?: MaterialComponent) {
+        this.commandEncoder = this.context.device.createCommandEncoder();
+        this.textureView = this.context.context.getCurrentTexture().createView();
+
         if (!this.renderPass) {
             throw new Error("Render pass not initialized");
         }
+
+        if (!this.commandEncoder || !this.textureView) {
+            throw new Error("Command encoder or texture view not initialized");
+        }
+
+
+
+        const renderPassDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: [{
+                view: this.textureView,
+                loadOp: 'load',
+                storeOp: 'store',
+                clearValue: { r: 0, g: 0, b: 0, a: 1 },
+            }],
+            depthStencilAttachment: {
+                view: this.depthTextureView!,
+                depthLoadOp: 'load',
+                depthStoreOp: 'store',
+                depthClearValue: 1.0,
+            },
+
+        };
+
+        this.renderPass = this.commandEncoder.beginRenderPass(renderPassDescriptor);
 
         // Determine which pipeline to use
         const pipelineType = material?.pipelineType ?? PipelineType.BASIC_MESH;
@@ -113,17 +148,11 @@ export default class Renderer {
 
         // Draw the mesh
         this.renderPass.drawIndexed(mesh.mesh.vertexCount);
-    }
-
-    endScene(scene: Scene) {
-        if (!this.renderPass || !this.commandEncoder) {
-            throw new Error("Render pass or command encoder not initialized");
-        }
 
         this.renderPass.end();
-
         this.context.device.queue.submit([this.commandEncoder.finish()]);
     }
+
 
 
 }

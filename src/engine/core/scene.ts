@@ -28,37 +28,16 @@ export default class Scene {
     update(renderer: Renderer, deltaTime: number): void {
 
 
-        renderer.beginScene(this);
+        renderer.clear([0, 1, 0, 1]); // Clear with a green color
 
-        {
-            var entt = this.getEntity(0);
-            if (entt) {
-                const transform = entt.getComponent(TransformComponent)!;
-                const mesh = entt.getComponent(MeshComponent)!;
-                const material = entt.getComponent(MaterialComponent)!;
-                renderer.renderMesh(transform, mesh, material);
-            }
+
+
+        // Render entities with both mesh and material components
+        for (const [, [transform, mesh, material]] of this._ecs.view(TransformComponent, MeshComponent, MaterialComponent)) {
+
+            renderer.renderMesh(transform, mesh, material);
+
         }
-
-        {
-            var entt = this.getEntity(1);
-            if (entt) {
-                const transform = entt.getComponent(TransformComponent)!;
-                const mesh = entt.getComponent(MeshComponent)!;
-                const material = entt.getComponent(MaterialComponent)!;
-                renderer.renderMesh(transform, mesh, material);
-            }
-        }
-
-
-
-        // // Render entities with both mesh and material components
-        // for (const [, [transform, mesh, material]] of this._ecs.view(TransformComponent, MeshComponent, MaterialComponent)) {
-
-        //     renderer.renderMesh(transform, mesh, material);
-
-        // }
-        renderer.endScene(this);
 
 
     }
