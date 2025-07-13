@@ -75,7 +75,7 @@ async function main() {
         planeEntity.addComponent(new MaterialComponent('basic_mesh'));
 
         planeEntity.getComponent(TransformComponent)!
-            .setScaleScalar(2w)
+            .setScaleScalar(2)
             .setPosition(0, 0, 0);
     }
 
