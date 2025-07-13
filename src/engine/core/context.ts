@@ -1,4 +1,4 @@
-export class Context {
+export default class Context {
     public canvas: HTMLCanvasElement;
     public context: GPUCanvasContext;
     public format: GPUTextureFormat;

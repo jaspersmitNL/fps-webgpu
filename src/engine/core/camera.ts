@@ -1,5 +1,5 @@
 import { type Vec3, type Mat4, vec3, mat4 } from "wgpu-matrix";
-import { Keyboard } from "./keyboard";
+import { Keyboard } from "../core/keyboard";
 
 export class Camera {
     public position: Vec3;
