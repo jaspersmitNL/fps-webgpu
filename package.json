@@ -1,0 +1,20 @@
+{
+  "name": "fps",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.64",
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4"
+  },
+  "dependencies": {
+    "wgpu-matrix": "^3.4.0"
+  }
+}
