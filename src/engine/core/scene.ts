@@ -44,7 +44,7 @@ export default class Scene {
         // Render entities with both mesh and material components
         for (const [, [transform, mesh, material]] of this._ecs.view(TransformComponent, MeshComponent, MaterialComponent)) {
 
-            renderer.renderMesh(transform, mesh, material);
+            renderer.renderMesh(this, transform, mesh, material);
 
         }
 

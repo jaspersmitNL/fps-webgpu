@@ -1,8 +1,8 @@
 import { mat4 } from "wgpu-matrix";
 import type Context from "../core/context";
 import type { TransformComponent, MeshComponent, MaterialComponent } from "../core/ecs";
-import Scene from "../core/scene";
 import PipelineManager, { PipelineType } from "./pipeline-manager";
+import type Scene from "../core/scene";
 
 export default class Renderer {
 
@@ -75,9 +75,13 @@ export default class Renderer {
     }
 
 
+    setRenderPass(renderPass: GPURenderPassEncoder) {
+
+    }
 
 
-    renderMesh(transform: TransformComponent, mesh: MeshComponent, material?: MaterialComponent) {
+
+    renderMesh(scene: Scene, transform: TransformComponent, mesh: MeshComponent, material?: MaterialComponent) {
         this.begin();
         if (!this.renderPass) {
             throw new Error("Render pass not initialized");
@@ -121,30 +125,12 @@ export default class Renderer {
         this.renderPass.setVertexBuffer(0, mesh.mesh.vertexBuffer);
         this.renderPass.setIndexBuffer(mesh.mesh.indexBuffer, 'uint32');
 
-        // Update uniforms if needed
 
-        let projection = mat4.identity();
-        let view = mat4.identity();
-        let model = mat4.identity();
-        model = mat4.translate(model, transform.position);
-        model = mat4.rotateX(model, transform.rotation[0]);
-        model = mat4.rotateY(model, transform.rotation[1]);
-        model = mat4.rotateZ(model, transform.rotation[2]);
-        model = mat4.scale(model, transform.scale);
 
-        let mvp = mat4.multiply(
-            mat4.multiply(projection, view),
-            model
-        );
+        // Upload uniforms
+        pipeline.uploadUniforms(this.context, scene, transform);
 
-        // upload mvp
-        this.context.device.queue.writeBuffer(
-            pipeline.uniformBuffer,
-            0,
-            mvp.buffer,
-            0,
-            mvp.byteLength
-        );
+
 
 
 

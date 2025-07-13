@@ -1,6 +1,8 @@
 import { mat4 } from "wgpu-matrix";
 import type Context from "../core/context";
 import basicMeshShaderCode from "./shaders/basic_mesh.wgsl?raw";
+import type Scene from "../core/scene";
+import type { TransformComponent } from "../core/ecs";
 
 export const PipelineType = {
     BASIC_MESH: 'basic_mesh',
@@ -20,6 +22,46 @@ class Pipeline {
         this.pipeline = pipeline;
         this.uniformBuffer = uniformBuffer;
         this.bindGroup = bindGroup;
+    }
+
+
+
+    uploadUniforms(context: Context, scene: Scene, transform: TransformComponent) {
+        switch (this.type) {
+            case PipelineType.BASIC_MESH:
+                this.uploadBassicMeshUniforms(context, scene, transform);
+                break;
+            default:
+                throw new Error(`Pipeline type ${this.type} not implemented for uploadUniforms`);
+
+        }
+    }
+
+    private uploadBassicMeshUniforms(context: Context, scene: Scene, transform: TransformComponent) {
+        let projection = mat4.identity();
+        let view = mat4.identity();
+        let model = mat4.identity();
+        model = mat4.translate(model, transform.position);
+        model = mat4.rotateX(model, transform.rotation[0]);
+        model = mat4.rotateY(model, transform.rotation[1]);
+        model = mat4.rotateZ(model, transform.rotation[2]);
+        model = mat4.scale(model, transform.scale);
+
+        let mvp = mat4.multiply(
+            mat4.multiply(projection, view),
+            model
+        );
+
+        // upload mvp
+        context.device.queue.writeBuffer(
+            this.uniformBuffer,
+            0,
+            mvp.buffer,
+            0,
+            mvp.byteLength
+        );
+
+
     }
 
 
