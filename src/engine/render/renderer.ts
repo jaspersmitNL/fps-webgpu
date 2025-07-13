@@ -34,10 +34,15 @@ export default class Renderer {
     }
 
 
-
-    clear(clearColor: number[]) {
+    private begin() {
         this.commandEncoder = this.context.device.createCommandEncoder();
         this.textureView = this.context.context.getCurrentTexture().createView();
+    }
+
+
+
+    clear(clearColor: number[]) {
+        this.begin();
 
         if (!this.commandEncoder || !this.textureView) {
             throw new Error("Render pass or command encoder not initialized");
@@ -73,9 +78,7 @@ export default class Renderer {
 
 
     renderMesh(transform: TransformComponent, mesh: MeshComponent, material?: MaterialComponent) {
-        this.commandEncoder = this.context.device.createCommandEncoder();
-        this.textureView = this.context.context.getCurrentTexture().createView();
-
+        this.begin();
         if (!this.renderPass) {
             throw new Error("Render pass not initialized");
         }

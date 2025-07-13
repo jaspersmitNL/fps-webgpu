@@ -28,7 +28,16 @@ export default class Scene {
     update(renderer: Renderer, deltaTime: number): void {
 
 
-        renderer.clear([0, 1, 0, 1]); // Clear with a green color
+        renderer.clear([0, 0, 0, 1]);
+
+
+        // sin from 0 to 0.5
+        this.getEntity(0)!.getComponent(TransformComponent)!.position[1] = Math.sin(Date.now() / 1000) * 0.5 + 0.5;
+        this.getEntity(1)!.getComponent(TransformComponent)!.position[0] = -Math.sin(Date.now() / 1000) * 0.3 + 0.3;
+
+
+        this.getEntity(0)!.getComponent(TransformComponent)!.rotation[2] += 0.01;
+        this.getEntity(1)!.getComponent(TransformComponent)!.rotation[2] -= 0.01;
 
 
 
