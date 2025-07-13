@@ -1,6 +1,7 @@
 import { vec3, type Vec3 } from "wgpu-matrix";
 import Mesh from "../mesh";
 import type { PipelineType } from "../../render/pipeline-manager";
+import type { RigidBody, RigidBodyHandle, ColliderHandle } from "@dimforge/rapier3d";
 
 export class TagComponent {
     public name: string;
@@ -67,5 +68,16 @@ export class MeshComponent {
 
     public setMesh(mesh: Mesh): void {
         this.mesh = mesh;
+    }
+}
+
+export type RigidBodyType = 'dynamic' | 'static';
+export class RigidBodyComponent {
+    type: RigidBodyType;
+    rigidBodyHandle?: RigidBodyHandle;
+    coliderHandle?: ColliderHandle;
+
+    constructor(type: RigidBodyType) {
+        this.type = type;
     }
 }

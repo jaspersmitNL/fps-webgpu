@@ -5,8 +5,13 @@ export default class Mesh {
     public indexBuffer: GPUBuffer;
     public vertexCount: number;
 
+    public vertices: Float32Array;
+    public indices: Uint32Array;
+
     constructor(context: Context, vertices: Float32Array, indices: Uint32Array) {
         this.vertexCount = indices.length;
+        this.vertices = vertices;
+        this.indices = indices;
 
 
         this.vertexBuffer = context.device.createBuffer({

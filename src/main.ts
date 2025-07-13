@@ -1,6 +1,7 @@
+import RAPIER from "@dimforge/rapier3d";
 import { Camera } from "./engine/core/camera";
 import { initializeContext } from "./engine/core/context";
-import { MaterialComponent, MeshComponent, TransformComponent } from "./engine/core/ecs";
+import { MaterialComponent, MeshComponent, RigidBodyComponent, TransformComponent } from "./engine/core/ecs";
 import { Keyboard } from "./engine/core/keyboard";
 import Mesh from "./engine/core/mesh";
 import Scene from "./engine/core/scene";
@@ -49,8 +50,7 @@ async function main() {
         triangleEntity.addComponent(new MaterialComponent('basic_mesh'));
 
         triangleEntity.getComponent(TransformComponent)!
-            .setScaleScalar(0.5)
-            .setPosition(-0.5, 0.5, 0);
+            .setPosition(-2.5, 0.5, 0);
     }
 
     {
@@ -62,8 +62,10 @@ async function main() {
         monkeyEntity.addComponent(new MaterialComponent('basic_mesh'));
 
         monkeyEntity.getComponent(TransformComponent)!
-            .setScaleScalar(0.5)
-            .setPosition(0.5, 0.8, 0);
+            .setPosition(0.2, 4, 0);
+
+        monkeyEntity.addComponent(new RigidBodyComponent('dynamic'));
+
     }
 
     {
@@ -75,9 +77,29 @@ async function main() {
         planeEntity.addComponent(new MaterialComponent('basic_mesh'));
 
         planeEntity.getComponent(TransformComponent)!
-            .setScaleScalar(2)
             .setPosition(0, 0, 0);
+
+        planeEntity.addComponent(new RigidBodyComponent('static'));
+
     }
+
+    // on pressing 'r' put the monkey back to its original position
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'r') {
+            const monkeyEntity = scene.getEntity(1);
+            if (monkeyEntity) {
+                monkeyEntity.getComponent(TransformComponent)!.setPosition(0.2, 4, 0);
+                let rigidBodyComponent = monkeyEntity.getComponent(RigidBodyComponent)!;
+                let rigidBody = scene.world.getRigidBody(rigidBodyComponent.rigidBodyHandle!)!;
+
+                rigidBody.setTranslation(new RAPIER.Vector3(0.2, 4, 0), true);
+                rigidBody.setLinvel(new RAPIER.Vector3(0, 0, 0), true);
+                rigidBody.setAngvel(new RAPIER.Vector3(0, 0, 0), true);
+
+
+            }
+        }
+    });
 
     let lastTime = 0;
     const loop = () => {
@@ -86,8 +108,16 @@ async function main() {
         scene.update(renderer, deltaTime);
         lastTime = currentTime;
 
+
+
+
+
+
         requestAnimationFrame(loop);
     }
+
+
+    scene.onStart();
 
     loop();
 

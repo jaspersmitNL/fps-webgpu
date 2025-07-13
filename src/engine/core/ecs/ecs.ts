@@ -19,7 +19,6 @@ export class ECS {
 
     addComponent<T>(entity: EntityHandle, component: T): T {
         const componentName = this.getComponentName(component);
-        console.log(`Adding component ${componentName} to entity ${entity}`);
         if (!this.components.has(componentName)) {
             this.components.set(componentName, new Map());
         }
