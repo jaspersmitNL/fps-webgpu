@@ -1,24 +1,32 @@
 struct Uniforms {
-  proj : mat4x4f,
-  transform : mat4x4f,
+  // model, view, projection
+  proj: mat4x4f,
+  view: mat4x4f,
 }
 
-@binding(0) @group(0) var<uniform> uniforms : Uniforms;
+struct Vertex {
+  @location(0) position: vec3f,
+}
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) rawPosition: vec3f,
+}
+
+@binding(0) @group(0) var<uniform> uniforms: Uniforms;
 
 @vertex
-fn vs_main(@builtin(vertex_index) VertexIndex: u32) -> @builtin(position) vec4f {
-  var positions = array<vec3f, 3>(
-    vec3(0.0, 0.5, 0.0),
-    vec3(-0.5, -0.5, 0.0),
-    vec3(0.5, -0.5, 0.0)
-  );
+fn vs_main(vertex: Vertex) -> VertexOutput {
+  var output: VertexOutput;
 
-  var pos = positions[VertexIndex];
+  // model, view, projection
 
-  return uniforms.proj * uniforms.transform * vec4f(pos, 1.0);
+  output.position = uniforms.proj * uniforms.view  * vec4(vertex.position, 1.0);
+  output.rawPosition = vertex.position;
+  return output;  
 }
 
 @fragment
-fn fs_main() -> @location(0) vec4f {
-  return vec4(1.0, 0.0, 0.0, 1.0);
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+  return vec4(in.rawPosition * 0.5 + 0.5, 1.0);
 }

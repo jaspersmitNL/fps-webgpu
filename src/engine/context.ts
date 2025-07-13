@@ -28,6 +28,7 @@ export async function initializeContext(canvas: HTMLCanvasElement): Promise<Cont
 
     const device = await adapter.requestDevice();
 
+
     const format = await navigator.gpu.getPreferredCanvasFormat();
 
     await context.configure({

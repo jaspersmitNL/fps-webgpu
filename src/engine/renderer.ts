@@ -1,23 +1,36 @@
 import type { Context } from "./context";
 import basicShaderCode from './basic.wgsl?raw';
+import monkeyObj from './monkey.obj?raw';
 
-import { mat4, vec3 } from 'wgpu-matrix';
+import { mat4 } from 'wgpu-matrix';
+import { parseOBJ } from "./parser/obj";
+import type { Camera } from "./camera";
+
+
+
+
 
 export class Renderer {
 
     private context: Context;
+    private lastTime = 0;
     private pipeline?: GPURenderPipeline;
     private depthTexture?: GPUTexture;
     private depthTextureView?: GPUTextureView;
     private uniformBuffer?: GPUBuffer;
     private bindGroup?: GPUBindGroup;
+    private vertexBuffer?: GPUBuffer;
+    private indexBuffer?: GPUBuffer;
+    private vertexCount?: number;
 
 
     public constructor(context: Context) {
         this.context = context;
     }
 
-    public setup(): void {
+    public async setup(): Promise<void> {
+
+        console.log(this.context.device)
 
 
 
@@ -30,6 +43,18 @@ export class Renderer {
             vertex: {
                 module: shader,
                 entryPoint: 'vs_main',
+                buffers: [
+                    {
+                        arrayStride: 12, // 3 floats * 4 bytes each
+                        attributes: [
+                            {
+                                format: 'float32x3',
+                                offset: 0,
+                                shaderLocation: 0, // position attribute
+                            },
+                        ],
+                    }
+                ]
             },
             fragment: {
                 module: shader,
@@ -77,44 +102,78 @@ export class Renderer {
 
 
 
+        let obj = parseOBJ(monkeyObj);
+
+
+        let vertsFlat = obj.vertices.flat();
+        let positions = new Float32Array(vertsFlat);
+
+
+        let _indices: number[] = [];
+        for (let i = 0; i < obj.faces.length; i++) {
+            const face = obj.faces[i];
+            if (face.vertexIndices.length === 3) {
+                _indices.push(face.vertexIndices[0], face.vertexIndices[1], face.vertexIndices[2]);
+            }
+        }
+
+        let indices = new Uint32Array(_indices);
+
+
+
+
+
+        this.vertexCount = indices.length;
+
+
+
+
+
+
+        this.vertexBuffer = this.context.device.createBuffer({
+            size: positions.byteLength,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true,
+        });
+        new Float32Array(this.vertexBuffer.getMappedRange()).set(positions);
+        this.vertexBuffer.unmap();
+
+
+
+
+        this.indexBuffer = this.context.device.createBuffer({
+            size: indices.byteLength,
+            usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true,
+        });
+        new Uint32Array(this.indexBuffer.getMappedRange()).set(indices);
+        this.indexBuffer.unmap();
+
+
 
     }
 
 
-    render() {
+
+    render(camera: Camera, time = 0) {
+        if (!this.lastTime) this.lastTime = time;
+        const deltaTime = (time - this.lastTime) / 1000; // seconds
+        this.lastTime = time;
+
         const commandEncoder = this.context.device.createCommandEncoder();
         const textureView = this.context.context.getCurrentTexture().createView();
 
+        camera.update(deltaTime);
 
-
-        const fov = 60 * Math.PI / 180
+        const fov = 60 * Math.PI / 180;
         const aspect = this.context.canvas.width / this.context.canvas.height;
         const near = 0.1;
         const far = 1000;
         const perspective = mat4.perspective(fov, aspect, near, far);
 
-
-
-
-
-
-        let transform = mat4.translate(mat4.identity(), [0, 0, -2]);
-
-
-
-        let rotation = mat4.rotateZ(
-            mat4.rotateY(mat4.identity(), Math.sin(performance.now() / 1000)),
-            performance.now() / 1000 % (2 * Math.PI) - Math.PI / 2
-        );
-
-        transform = mat4.multiply(transform, rotation);
-
-
-
-        // Combine both matrices into a single Float32Array for one writeBuffer call
-        const combined = new Float32Array(32); // 16 floats per mat4, 2 matrices
+        const combined = new Float32Array(32); // 2 mat4's
         combined.set(perspective, 0);
-        combined.set(transform, 16);
+        combined.set(camera.getViewMatrix(), 16);
 
         this.context.device.queue.writeBuffer(
             this.uniformBuffer!, 0, combined.buffer, 0, combined.byteLength
@@ -141,13 +200,14 @@ export class Renderer {
         }
         passEncoder.setPipeline(this.pipeline);
         passEncoder.setBindGroup(0, this.bindGroup!);
-        passEncoder.draw(3, 1, 0, 0);
+        passEncoder.setVertexBuffer(0, this.vertexBuffer!);
+        passEncoder.setIndexBuffer(this.indexBuffer!, 'uint32');
+        passEncoder.drawIndexed(this.vertexCount!, 1, 0, 0, 0);
         passEncoder.end();
         this.context.device.queue.submit([commandEncoder.finish()]);
 
-        requestAnimationFrame(() => this.render());
+        requestAnimationFrame((newTime) => this.render(camera, newTime));
     }
-
 
 
 
